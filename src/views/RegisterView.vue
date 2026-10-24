@@ -5,12 +5,13 @@ import RegisterForm from '@/components/auth/RegisterForm.vue'
 
 <template>
   <AuthShell
-    kicker="双语阅读伴侣"
-    art-heading="创建账号，把读过的书都留住。"
-    art-body="账号用于记录你的书籍、任务与阅读进度，再次找到每一段对照。"
+    variant="register"
     title="注册"
     subtitle="几步即可开始处理你的第一本书。"
-    quote="再次找到它，是双语阅读伴侣的最后一环。"
+    art-line-1="创建账号，"
+    art-line-2="把读过的书都留住。"
+    art-body="账号用于记录你的书籍、任务与阅读进度，再次找到每一段对照。"
+    quote="&quot;再次找到它，是双语阅读伴侣的最后一环。&quot;"
   >
     <RegisterForm />
     <p class="foot">

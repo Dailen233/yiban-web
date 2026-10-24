@@ -93,6 +93,7 @@ watch(
             aria-haspopup="true"
             :aria-expanded="menuOpen"
             @click="toggleMenu"
+            @keydown.down.prevent="menuOpen = true"
           >
             <span class="av" aria-hidden="true">{{ avatarChar }}</span>
             <span class="acct-meta">

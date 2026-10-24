@@ -5,11 +5,11 @@ import LoginForm from '@/components/auth/LoginForm.vue'
 
 <template>
   <AuthShell
-    kicker="双语阅读伴侣"
-    art-heading="让每一页，都有另一门语言陪伴。"
-    art-body="登录后继续你的双语阅读旅程，重新找到读过的每一本书。"
+    variant="login"
     title="登录"
     subtitle="欢迎回来，继续你的双语阅读。"
+    art-line-1="让每一页，"
+    art-line-2="都有另一门语言陪伴。"
   >
     <LoginForm />
     <p class="foot">

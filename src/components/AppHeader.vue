@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useLogout } from '@/composables/useLogout'
@@ -19,11 +19,20 @@ const avatarChar = computed(() => {
 // 账号下拉菜单
 const menuOpen = ref(false)
 const acctRef = ref<HTMLElement | null>(null)
+const acctBtnRef = ref<HTMLButtonElement | null>(null)
 function toggleMenu(): void {
   menuOpen.value = !menuOpen.value
 }
-function closeMenu(): void {
+/** 键盘展开：打开后把焦点移到首个可操作项。 */
+function openMenu(): void {
+  menuOpen.value = true
+  void nextTick(() => {
+    acctRef.value?.querySelector<HTMLElement>('.acct-item')?.focus()
+  })
+}
+function closeMenu(focusBack = false): void {
   menuOpen.value = false
+  if (focusBack) acctBtnRef.value?.focus()
 }
 
 // 移动端导航抽屉
@@ -35,9 +44,8 @@ function closeDrawer(): void {
   drawerOpen.value = false
 }
 
-// 退出登录：清理身份并由守卫/跳转回登录页。
+// 退出登录：失败时保持菜单打开以展示错误并可重试；成功后身份清除、组件切到游客态，菜单随之消失。
 async function onLogout(): Promise<void> {
-  closeMenu()
   await logout()
 }
 
@@ -47,9 +55,11 @@ function onDocumentClick(e: MouseEvent): void {
   }
 }
 function onKeydown(e: KeyboardEvent): void {
-  if (e.key === 'Escape') {
-    if (menuOpen.value) closeMenu()
-    if (drawerOpen.value) closeDrawer()
+  if (e.key !== 'Escape') return
+  if (menuOpen.value) {
+    closeMenu(true)
+  } else if (drawerOpen.value) {
+    closeDrawer()
   }
 }
 
@@ -89,11 +99,12 @@ watch(
         <div class="acct" ref="acctRef">
           <button
             class="acct-btn"
+            ref="acctBtnRef"
             type="button"
             aria-haspopup="true"
             :aria-expanded="menuOpen"
             @click="toggleMenu"
-            @keydown.down.prevent="menuOpen = true"
+            @keydown.down.prevent="openMenu"
           >
             <span class="av" aria-hidden="true">{{ avatarChar }}</span>
             <span class="acct-meta">
@@ -133,7 +144,7 @@ watch(
     </div>
   </header>
 
-  <div id="mobile-nav" :class="{ open: drawerOpen }">
+  <div id="mobile-nav" :class="{ open: drawerOpen }" @click="closeDrawer">
     <RouterLink :to="{ name: 'home' }">首页</RouterLink>
     <RouterLink :to="{ name: 'dashboard' }">工作台</RouterLink>
     <template v-if="auth.status === 'unauthenticated'">

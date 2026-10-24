@@ -73,7 +73,7 @@ onBeforeUnmount(() => {
           <span class="t-line t-line-2">两境言说</span>
         </h1>
         <p class="lead">
-          上传 TXT / EPUB / 文本型 PDF，AI 逐段翻译，生成原文与译文逐段对照的双语电子书，可导出 EPUB 与 PDF 随身阅读。
+          让一本外文书拥有原文与译文逐段对照的双语阅读体验。当前已开放账号功能；整书处理正在接入，首版计划 TXT、英语→中文与 EPUB 导出，EPUB/PDF 输入与 PDF 导出为后续扩展。
         </p>
         <div class="cta">
           <RouterLink class="btn btn-primary" :to="{ name: 'login' }">开始使用</RouterLink>
@@ -114,14 +114,14 @@ onBeforeUnmount(() => {
         <div class="sec-head">
           <span class="eyebrow">How it works</span>
           <h2>三步拿到你的双语书</h2>
-          <p>上传、选择语言、等待处理。处理期间可以离开，回来查看进度与结果。</p>
+          <p>整书处理正在接入，以下三步为产品规划示意。上线后可上传、选择语言并等待后台处理。</p>
         </div>
 
         <div class="hw">
           <div class="hw-item" data-step="1" :class="{ 'is-active': activeStep === '1' }">
             <span class="hw-n">01</span>
             <h3>上传一本书</h3>
-            <p>支持 TXT、EPUB 与文本型 PDF，系统自动提取正文与章节，过滤页眉页脚等噪音。</p>
+            <p>首版计划支持 TXT 输入，系统自动提取正文与章节、过滤页眉页脚等噪音；EPUB / 文本型 PDF 输入为后续扩展。</p>
           </div>
           <div class="hw-scene" data-step="1" :class="{ 'is-on': activeStep === '1' }">
             <div class="hwv">
@@ -141,7 +141,7 @@ onBeforeUnmount(() => {
           <div class="hw-item" data-step="2" :class="{ 'is-active': activeStep === '2' }">
             <span class="hw-n">02</span>
             <h3>确认原文与目标语言</h3>
-            <p>原文语言默认自动识别、可手动修正；选择目标语言后提交，任务在后台处理并显示进度。</p>
+            <p>原文语言自动识别、可手动修正；首版计划英语 → 中文。提交后任务在后台处理并显示进度。</p>
           </div>
           <div class="hw-scene" data-step="2" :class="{ 'is-on': activeStep === '2' }">
             <div class="hwv">
@@ -164,7 +164,7 @@ onBeforeUnmount(() => {
           <div class="hw-item" data-step="3" :class="{ 'is-active': activeStep === '3' }">
             <span class="hw-n">03</span>
             <h3>逐段对照并导出</h3>
-            <p>原文与译文逐段对齐，在线对照阅读，下载 EPUB 与 PDF；书籍留在书库可随时再取。</p>
+            <p>原文与译文逐段对齐、在线对照阅读；首版计划 EPUB 导出，PDF 导出为后续扩展。</p>
           </div>
           <div class="hw-scene" data-step="3" :class="{ 'is-on': activeStep === '3' }">
             <div class="hwv">
@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
       <div class="wrap">
         <span class="eyebrow">Ready when you are</span>
         <h2>开始把你的书，变成双语书</h2>
-        <p>登录后上传第一本书，几步得到可下载的双语电子书。</p>
+        <p>登录即可创建账号；整书处理上线后，几步得到可下载的双语电子书。</p>
         <RouterLink class="btn btn-gold" :to="{ name: 'login' }">登录 / 注册</RouterLink>
       </div>
     </section>

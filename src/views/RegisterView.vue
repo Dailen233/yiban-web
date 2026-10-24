@@ -10,6 +10,7 @@ import RegisterForm from '@/components/auth/RegisterForm.vue'
     art-body="账号用于记录你的书籍、任务与阅读进度，再次找到每一段对照。"
     title="注册"
     subtitle="几步即可开始处理你的第一本书。"
+    quote="再次找到它，是双语阅读伴侣的最后一环。"
   >
     <RegisterForm />
     <p class="foot">

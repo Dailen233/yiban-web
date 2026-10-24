@@ -1,0 +1,26 @@
+/* 本地字体子集（迁移自 ../bilingual-ebook-generator/prototype/v4/assets/fonts/）
+   授权文本见 src/assets/licenses/（OFL）。仅声明首页/登录/注册/共享顶栏实际用到的字重。 */
+
+/* 品牌字标：霞鹜文楷（横向印章「译伴」） */
+@font-face {
+  font-family: "LXGW Mark";
+  src: url("./fonts/lxgw-wenkai-mark.woff2") format("woff2");
+  font-weight: 400;
+  font-display: block;
+}
+
+/* 登录/注册左侧艺术区欢迎语与点睛文字 */
+@font-face {
+  font-family: "LXGW Login";
+  src: url("./fonts/lxgw-wenkai-login.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* 首页首屏主标题：马善政体 */
+@font-face {
+  font-family: "MSZ Title";
+  src: url("./fonts/mashanzheng-title.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}

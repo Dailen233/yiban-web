@@ -10,6 +10,8 @@ defineProps<{
   title: string
   /** 右侧表单副标题。 */
   subtitle: string
+  /** 左侧装帧区底部引语（可选，仅注册页使用）。 */
+  quote?: string
 }>()
 </script>
 
@@ -23,6 +25,7 @@ defineProps<{
         <span class="paper"></span>
         <span class="seal"></span>
       </div>
+      <p v-if="quote" class="quote">{{ quote }}</p>
     </div>
 
     <div class="form-side">
@@ -76,7 +79,7 @@ defineProps<{
   display: block;
   margin-bottom: 16px;
   position: relative;
-  font-family: var(--serif);
+  font-family: "LXGW Login", var(--serif);
   font-size: 13px;
   letter-spacing: 0.5em;
   padding-left: 0.5em;
@@ -85,7 +88,7 @@ defineProps<{
 
 .art h2 {
   color: #f5f0e6;
-  font-family: var(--serif);
+  font-family: "LXGW Login", var(--serif);
   font-size: clamp(1.6rem, 2.2vw, 2.05rem);
   font-weight: 400;
   line-height: 1.62;
@@ -157,6 +160,18 @@ defineProps<{
   inset: 5px;
   border: 1px solid rgba(176, 74, 58, 0.5);
   border-radius: 3px;
+}
+
+.quote {
+  margin: 30px 0 0;
+  font-family: var(--serif);
+  font-style: italic;
+  color: #cdd9e2;
+  font-size: 15px;
+  border-left: 2px solid var(--gold-2);
+  padding-left: 14px;
+  text-align: left;
+  max-width: 22em;
 }
 
 .form-side {

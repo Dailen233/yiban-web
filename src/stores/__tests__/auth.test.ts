@@ -11,6 +11,16 @@ function jsonResponse(status: number, body: unknown): Response {
   } as unknown as Response
 }
 
+function deferredResponse() {
+  let resolve!: (r: Response) => void
+  let reject!: (e: unknown) => void
+  const promise = new Promise<Response>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return { promise, resolve, reject }
+}
+
 const user = { id: 'u-1', email: 'reader@example.com', display_name: '林一舟', role: 'user' }
 
 beforeEach(() => {
@@ -150,5 +160,122 @@ describe('注册不自动登录', () => {
     // 恢复身份：没有会话 Cookie → 明确未登录
     await store.restore()
     expect(store.status).toBe('unauthenticated')
+  })
+})
+
+describe('restore 与 login/logout 的竞态', () => {
+  const userA = { id: 'u-a', email: 'a@example.com', display_name: '账号A', role: 'user' }
+  const userB = { id: 'u-b', email: 'b@example.com', display_name: '账号B', role: 'user' }
+
+  function fetchRouter(routes: Record<string, () => Promise<Response>>) {
+    return vi.fn(async (url: unknown) => {
+      const u = String(url)
+      for (const [segment, handler] of Object.entries(routes)) {
+        if (u.includes(segment)) return handler()
+      }
+      throw new Error(`unexpected url: ${u}`)
+    })
+  }
+
+  it('过期 me 401 不覆盖新登录身份', async () => {
+    const meDeferred = deferredResponse()
+    vi.stubGlobal(
+      'fetch',
+      fetchRouter({
+        '/auth/me': () => meDeferred.promise,
+        '/auth/login': async () => jsonResponse(200, userB),
+      }),
+    )
+    const store = useAuthStore()
+
+    const restoring = store.restore()
+    await store.login({ email: userB.email, password: 'password' })
+    meDeferred.resolve(jsonResponse(401, { message: '未认证' }))
+    await restoring
+
+    expect(store.status).toBe('authenticated')
+    expect(store.user).toEqual(userB)
+  })
+
+  it('过期 me 返回账号 A 不覆盖新登录的账号 B', async () => {
+    const meDeferred = deferredResponse()
+    vi.stubGlobal(
+      'fetch',
+      fetchRouter({
+        '/auth/me': () => meDeferred.promise,
+        '/auth/login': async () => jsonResponse(200, userB),
+      }),
+    )
+    const store = useAuthStore()
+
+    const restoring = store.restore()
+    await store.login({ email: userB.email, password: 'password' })
+    meDeferred.resolve(jsonResponse(200, userA))
+    await restoring
+
+    expect(store.status).toBe('authenticated')
+    expect(store.user).toEqual(userB)
+  })
+
+  it('过期 me 503 不覆盖为 restore-error', async () => {
+    const meDeferred = deferredResponse()
+    vi.stubGlobal(
+      'fetch',
+      fetchRouter({
+        '/auth/me': () => meDeferred.promise,
+        '/auth/login': async () => jsonResponse(200, userB),
+      }),
+    )
+    const store = useAuthStore()
+
+    const restoring = store.restore()
+    await store.login({ email: userB.email, password: 'password' })
+    meDeferred.resolve(jsonResponse(503, { message: '服务不可用' }))
+    await restoring
+
+    expect(store.status).toBe('authenticated')
+    expect(store.restoreError).toBeNull()
+  })
+
+  it('过期 me 网络失败不覆盖为 restore-error', async () => {
+    const meDeferred = deferredResponse()
+    vi.stubGlobal(
+      'fetch',
+      fetchRouter({
+        '/auth/me': () => meDeferred.promise,
+        '/auth/login': async () => jsonResponse(200, userB),
+      }),
+    )
+    const store = useAuthStore()
+
+    const restoring = store.restore()
+    await store.login({ email: userB.email, password: 'password' })
+    meDeferred.reject(new TypeError('fetch failed'))
+    await restoring
+
+    expect(store.status).toBe('authenticated')
+    expect(store.restoreError).toBeNull()
+  })
+
+  it('过期 me 在成功退出后不重新写回身份', async () => {
+    const meDeferred = deferredResponse()
+    vi.stubGlobal(
+      'fetch',
+      fetchRouter({
+        '/auth/me': () => meDeferred.promise,
+        '/auth/login': async () => jsonResponse(200, userB),
+        '/auth/logout': async () => jsonResponse(204, null),
+      }),
+    )
+    const store = useAuthStore()
+
+    await store.login({ email: userB.email, password: 'password' })
+    const restoring = store.restore()
+    await store.logout()
+    meDeferred.resolve(jsonResponse(200, userB))
+    await restoring
+
+    expect(store.status).toBe('unauthenticated')
+    expect(store.user).toBeNull()
   })
 })

@@ -20,6 +20,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   /** 并发恢复请求去重：进行中的恢复共享同一个 Promise。 */
   let restorePromise: Promise<void> | null = null
+  /**
+   * 会话版本号：登录/退出成功后递增。恢复请求开始时记下当时的版本，
+   * me 返回时若版本已变化说明期间发生了新的登录/退出，结果已过时，丢弃。
+   */
+  let sessionVersion = 0
 
   const isAuthenticated = computed(() => status.value === 'authenticated')
   const isInitializing = computed(() => status.value === 'initializing')
@@ -27,10 +32,14 @@ export const useAuthStore = defineStore('auth', () => {
   async function doRestore(): Promise<void> {
     status.value = 'initializing'
     restoreError.value = null
+    const version = sessionVersion
     try {
-      user.value = await authApi.me()
+      const me = await authApi.me()
+      if (version !== sessionVersion) return
+      user.value = me
       status.value = 'authenticated'
     } catch (err) {
+      if (version !== sessionVersion) return
       user.value = null
       if (isUnauthorized(err)) {
         status.value = 'unauthenticated'
@@ -50,13 +59,16 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function login(input: LoginInput): Promise<void> {
-    user.value = await authApi.login(input)
+    const me = await authApi.login(input)
+    sessionVersion += 1
+    user.value = me
     status.value = 'authenticated'
     restoreError.value = null
   }
 
   async function logout(): Promise<void> {
     await authApi.logout()
+    sessionVersion += 1
     user.value = null
     status.value = 'unauthenticated'
     restoreError.value = null

@@ -6,11 +6,9 @@
 
 ## 当前范围
 
-截至 2026-10-22，已生成官方起步项目，通过本机类型检查、生产构建和两项代码检查，并将 `master`、`develop` 同步到 Gitee 与 GitHub。首次提交为 [`243374b`](https://gitee.com/jin-xinfu/yiban-web/commit/243374bf6130281bc7308cfd75eb1080c7809bcb)。
+截至 2026-10-24，用户端已接入真实账号能力并通过浏览器联调：注册、登录、身份恢复（me）、退出，以及登录态路由守卫（受保护页拦截、已登录跳转）。注册成功仅创建账号，需登录后进入工作台；会话由后端 HttpOnly Cookie 管理，前端不保存令牌或登录标记。首次提交为 [`243374b`](https://gitee.com/jin-xinfu/yiban-web/commit/243374bf6130281bc7308cfd75eb1080c7809bcb)。
 
-当前页面仍是 Vue 的 Home、About 示例，另有 Pinia 示例 store。译伴的登录、上传、翻译、任务、书库、阅读与下载尚未接入。本仓当前也没有业务 API 请求封装、PWA 或自动化测试脚本。
-
-首个真实里程碑按中央需求 §3.5 的开发顺序推进：基础注册与登录 → TXT 上传及英语到中文 → 真实翻译与后台进度 → 双语预览 → EPUB 下载 → 个人书库与重新下载。账号、属主、处理、入库和下载鉴权由 `yiban-api` 保证。
+整书功能（TXT 上传、翻译、后台任务、双语预览、EPUB 下载、个人书库）尚未接入，本批也未实现管理端、PWA 与找回密码。自动化测试使用 Vitest（`npm run test`），覆盖会话恢复、401 与网络/503 的区分、注册不自动登录、退出失败与路由跳转；构建仍通过 `npm run build`（含类型检查）。
 
 EPUB/PDF 输入、更多语言对、PDF 导出、完整阅读体验、PWA 等保留为后续目标；第三方登录按课堂说明属于加分项。该顺序不取消产品最终范围，也不将尚未完成的功能写成已实现。
 
@@ -27,7 +25,7 @@ EPUB/PDF 输入、更多语言对、PDF 导出、完整阅读体验、PWA 等保
 | `yiban-admin` | 管理端：独立入口与任务、失败信息的只读查看起步 | [主仓库](https://gitee.com/jin-xinfu/yiban-admin) | [镜像](https://github.com/Dailen233/yiban-admin) |
 | `yiban-api` | 共享后端：账号、权限、文件、解析、翻译、任务、成果与下载 | [主仓库](https://gitee.com/jin-xinfu/yiban-api) | [镜像](https://github.com/Dailen233/yiban-api) |
 
-当前用户端与管理端均已导入起步代码；后端远程空仓库已创建，尚未导入起步代码。管理端的译伴业务同样尚未实现。Gitee 是开发与 PR 合并入口，GitHub 同步相同提交；校内 GitLab 留到最终提交阶段处理。
+用户端已导入起步代码并承接首个真实里程碑的账号能力；管理端与后端的当前进度以其各自仓库说明为准。Gitee 是开发与 PR 合并入口，GitHub 同步相同提交；校内 GitLab 留到最终提交阶段处理。
 
 ## 本地运行
 
@@ -47,6 +45,12 @@ npm run build
 
 `build` 同时执行 `vue-tsc --build` 类型检查和 Vite 构建；`build-only` 只构建。输出目录是 `dist/`，不提交到 Git。
 
+运行单元测试（Vitest，Node 环境，mock fetch，不需要浏览器或后端）：
+
+```bash
+npm run test
+```
+
 只检查代码、不自动修复：
 
 ```bash
@@ -54,27 +58,35 @@ npm run build
 ./node_modules/.bin/eslint .
 ```
 
-现有 `npm run lint` 会执行带 `--fix` 的 Oxlint、ESLint，`npm run format` 会改写 `src/`；使用后需检查实际差异。当前没有 `test` 脚本，也未配置 CI。
+现有 `npm run lint` 会执行带 `--fix` 的 Oxlint、ESLint，`npm run format` 会改写 `src/`；使用后需检查实际差异。尚未配置 CI。
 
-初始化验收记录：`npm install --no-audit --no-fund` 成功，安装 305 个包；`npm run build` 成功并转换 44 个模块；只读 Oxlint、ESLint 均通过。此记录来自本机终端，尚不代表译伴业务、浏览器流程、后端权限或线上部署已通过验收。版本与证据详见[起步来源](docs/starter-source.md)。
+## 与后端联调
+
+浏览器联调使用 `yiban-api` 的账号接口，后端地址默认 `http://localhost:8001`（见 `src/utils/request.ts`），可用 `.env.development.local` 中的 `VITE_API_BASE_URL` 覆盖；该变量只放公开 API 地址，不进入提交。接口前缀为 `/api/v1`，写请求携带 `X-Yiban-Request: 1`，会话 Cookie 为 HttpOnly，前端不读取令牌。
+
+后端启动方式见 `../yiban-api/docs/local-development.md`（开发库 `yiban_api_dev`，端口 3307；联调不要使用 3308 的测试库）。`/health` 的 `business_ready=false` 表示整书业务尚未就绪，账号接口不受影响。浏览器验证以 localhost 访问用户端，便于 Origin 与后端白名单一致。
+
+初始化验收记录：`npm install --no-audit --no-fund` 成功，安装 305 个包；`npm run build` 成功并转换 44 个模块；只读 Oxlint、ESLint 均通过。此记录仅证明起步基线可安装、可类型检查、可构建；译伴业务与浏览器验收情况以[当前范围](#当前范围)为准。版本与证据详见[起步来源](docs/starter-source.md)。
 
 ## 代码组织
 
 | 位置 | 当前内容与用途 |
 |---|---|
-| `src/main.ts`、`src/App.vue` | 应用入口与根组件，已挂载 Router、Pinia |
-| `src/views/` | Home、About 示例；后续按用户场景建立页面 |
-| `src/router/` | 路由定义，当前使用 `createWebHistory` |
-| `src/stores/` | Pinia 示例；后续只保存需要共享的前端状态 |
-| `src/components/`、`src/assets/` | 示例组件、图标与样式；后续沉淀公共阅读组件和视觉变量 |
+| `src/main.ts`、`src/App.vue` | 应用入口与根组件；入口发起身份恢复，根组件维护登录态与路由同步 |
+| `src/views/` | `HomeView`（公开介绍）、`LoginView`、`RegisterView`、`DashboardView`（受保护工作台） |
+| `src/router/` | 路由定义与 `guard.ts` 守卫（等待身份恢复、受保护页与公开页跳转） |
+| `src/stores/` | `auth.ts` 会话状态（status 区分未确认/已登录/未登录/恢复失败，恢复请求去重） |
+| `src/api/`、`src/types/` | `auth.ts` 接口封装与账号类型，对应后端 `/api/v1/auth/*` |
+| `src/utils/` | `request.ts` 统一请求入口（凭据、写请求头、按 HTTP 状态分类错误）与 `validation.ts` 客户端校验 |
+| `src/composables/` | `useLogout.ts` 退出登录（失败不显示成功） |
+| `src/components/` | `AppHeader` 顶栏与 `components/auth/` 登录注册表单、分屏外壳 |
+| `src/assets/` | 设计令牌与全局样式（“现代东方阅读”视觉方向） |
 | `public/` | 原样复制的静态资源 |
-| `vite.config.ts`、`tsconfig*.json` | 构建、路径别名与类型检查配置 |
+| `vite.config.ts`、`vitest.config.ts`、`tsconfig*.json` | 构建、测试、路径别名与类型检查配置 |
 | `package.json`、`package-lock.json` | 命令、依赖范围与实际锁定版本 |
 | `docs/` | 起步来源与原始说明 |
 
-业务接入时逐步建立 `src/api/` 的模块请求、`src/types/` 的接口类型与共享请求入口 `src/utils/request.ts`；本批没有创建这些业务文件。路由和菜单用于界面引导，服务端必须独立校验账号、角色与属主。
-
-当前尚未配置业务 API 地址、请求代理或鉴权方案。联调时根据接口契约统一处理；`VITE_*` 可进入浏览器产物，不存放翻译服务密钥等服务端秘密。正式部署需结合现有 history 路由配置静态资源路径与回退，验证内页直接访问和刷新。
+路由和菜单用于界面引导，服务端必须独立校验账号、角色与属主；`VITE_*` 可进入浏览器产物，不存放翻译服务密钥等服务端秘密。正式部署需结合现有 history 路由配置静态资源路径与回退，验证内页直接访问和刷新。
 
 ## 开发流程
 

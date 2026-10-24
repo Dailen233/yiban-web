@@ -1,9 +1,22 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useLogout } from '@/composables/useLogout'
 
 const auth = useAuthStore()
 const { pending: loggingOut, error: logoutError, logout } = useLogout()
+
+const ROLE_LABELS: Record<string, string> = {
+  user: '普通用户',
+  admin: '管理员',
+}
+
+// 按后端返回的 user.role 展示；未知角色回退为原始值，缺失时显示“未知”。
+const roleText = computed(() => {
+  const role = auth.user?.role
+  if (!role) return '未知'
+  return ROLE_LABELS[role] ?? role
+})
 </script>
 
 <template>
@@ -25,7 +38,7 @@ const { pending: loggingOut, error: logoutError, logout } = useLogout()
             </div>
             <div class="row">
               <dt>角色</dt>
-              <dd><span class="badge b-ok">用户</span></dd>
+              <dd><span class="badge b-ok">{{ roleText }}</span></dd>
             </div>
           </dl>
         </div>

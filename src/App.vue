@@ -1,85 +1,54 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { watch } from 'vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
+import AppHeader from '@/components/AppHeader.vue'
+import { useAuthStore } from '@/stores/auth'
+import { GUEST_ONLY } from '@/router/guard'
+
+const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
+
+// 登录态与路由同步：身份在页面停留期间变化时（如重试恢复），保持与守卫一致的引导，
+// 避免工作台停留在“未登录”或公开页停留在“已登录”的错位状态。
+watch(
+  () => auth.status,
+  (status) => {
+    if (status === 'authenticated' && GUEST_ONLY.has(String(route.name))) {
+      void router.replace({ name: 'dashboard' })
+    }
+    if (status === 'unauthenticated' && route.meta.requiresAuth) {
+      void router.replace({ name: 'login', query: { redirect: route.fullPath } })
+    }
+  },
+)
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+  <div class="app-shell">
+    <AppHeader />
+    <RouterView v-slot="{ Component }">
+      <template v-if="Component">
+        <component :is="Component" />
+      </template>
+      <div v-else class="app-loading" aria-live="polite">正在载入…</div>
+    </RouterView>
+  </div>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.app-loading {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  min-height: 50vh;
+  color: var(--muted);
+  font-size: 14px;
 }
 </style>

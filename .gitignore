@@ -32,6 +32,9 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
+# Playwright CLI 本地验收产物
+.playwright-cli/
+
 # Vitest
 __screenshots__/
 
